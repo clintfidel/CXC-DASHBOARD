@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import moment from "moment"
 import { useDispatch, useSelector } from 'react-redux'
 import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
@@ -17,58 +18,13 @@ import { Input } from '@mui/material';
 import SearchInput from './SearchInput';
 import RatingComp from './RatingComp';
 import { getAllOrders } from '../redux/order/order.actions'
+import { getSingleDistributor } from '../redux/company/company.action'
+import Pagination from "../components/Pagination";
 
-function createData(
-  date,
-  delivery,
-  buyerName,
-  buyerCode,
-  buyerNum,
-  sellerName,
-  sellerCode,
-  sellerNum,
-  orderStatus,
-  lastUpdated,
-  rating,
-  cicAgent,
-  cicAgentFollow,
-  buyerBdr,
-  action
-) {
-  return {
-    date,
-    delivery,
-    buyerName,
-    buyerNum,
-    buyerCode,
-    sellerNum,
-    sellerCode,
-    sellerName,
-    orderStatus,
-    lastUpdated,
-    rating,
-    cicAgent,
-    cicAgentFollow,
-    buyerBdr,
-    action,
-    history: [
-      {
-        date: '2020-01-05',
-        customerId: '11091700',
-        amount: 3
-      },
-      {
-        date: '2020-01-02',
-        customerId: 'Anonymous',
-        amount: 1
-      }
-    ]
-  };
-}
 
 const Row = ({ order }) => {
   const [open, setOpen] = useState(false);
-
+  
   return (
     <>
       <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -78,27 +34,25 @@ const Row = ({ order }) => {
           </IconButton>
         </TableCell>
         <TableCell component="th" scope="row">
-          11-12-2022
+        {moment(order?.datePlaced).format('MMMM Do YYYY')}
         </TableCell>
         <TableCell>{order.delivery}</TableCell>
         <TableCell>{order?.status}</TableCell>
         <TableCell>{order?.buyerDetails[0]?.buyerName}</TableCell>
         <TableCell>{order?.buyerCompanyId}</TableCell>
         <TableCell>{order?.buyerDetails[0]?.buyerPhoneNumber}</TableCell>
-        <TableCell>{order.sellerName}</TableCell>
-        <TableCell>{order.sellerCode}</TableCell>
-        <TableCell>{order.sellerNum}</TableCell>
-        <TableCell>{order.lastUpdated}</TableCell>
+        <TableCell>{getSingleDistributor(order.sellerCompanyId)?.Owner_Name}</TableCell>
+        <TableCell>{order.sellerCompanyId}</TableCell>
+        <TableCell>{getSingleDistributor(order.sellerCompanyId)?.Owner_Phone}</TableCell>
         <TableCell>
           <RatingComp />
         </TableCell>
-        <TableCell>{order?.agent}</TableCell>
+        <TableCell>{!order?.agent || order?.agent === "undefined"  ?  "Nil"  : order?.agent}</TableCell>
         <TableCell></TableCell>
-        <TableCell>{order?.specificRouteName}</TableCell>
-        <TableCell></TableCell>
-        }
+        <TableCell>{!order?.specificRouteName || order?.specificRouteName === "undefined"  ?  "Nil"  : order?.specificRouteName}</TableCell>
+        <TableCell>Test</TableCell>
       </TableRow>
-      {/* <TableRow>
+      <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 3 }}>
@@ -106,21 +60,23 @@ const Row = ({ order }) => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Date</TableCell>
-                    <TableCell>Customer</TableCell>
-                    <TableCell align="right">Amount</TableCell>
+                    <TableCell>Customer Name</TableCell>
+                    <TableCell>Customer Code</TableCell>
+                    <TableCell align="right">Quantity</TableCell>
                     <TableCell align="right">Total price ($)</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {row.history.map((historyRow) => (
-                    <TableRow key={historyRow.date}>
+                  {order?.orderItems.map((orderData) => (
+                    <TableRow key={orderData?.orderItemsId}>
                       <TableCell component="th" scope="row">
-                        {historyRow.date}
+                      {moment(order?.datePlaced).format('MMMM Do YYYY')}
                       </TableCell>
-                      <TableCell>{historyRow.customerId}</TableCell>
-                      <TableCell align="right">{historyRow.amount}</TableCell>
+                      <TableCell>{order?.buyerDetails[0]?.buyerName}</TableCell>
+                      <TableCell>{order?.buyerCompanyId}</TableCell>
+                      <TableCell align="right">{orderData?.quantity}</TableCell>
                       <TableCell align="right">
-                        {Math.round(historyRow.amount * row.price * 100) / 100}
+                        {orderData?.price * orderData?.quantity}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -129,50 +85,27 @@ const Row = ({ order }) => {
             </Box>
           </Collapse>
         </TableCell>
-      </TableRow> */}
+      </TableRow>
     </>
   );
 }
-
-// Row.propTypes = {
-//   row: PropTypes.shape({
-//     calories: PropTypes.number.isRequired,
-//     carbs: PropTypes.number.isRequired,
-//     fat: PropTypes.number.isRequired,
-//     history: PropTypes.arrayOf(
-//       PropTypes.shape({
-//         amount: PropTypes.number.isRequired,
-//         customerId: PropTypes.string.isRequired,
-//         date: PropTypes.string.isRequired
-//       })
-//     ).isRequired,
-//     name: PropTypes.string.isRequired,
-//     price: PropTypes.number.isRequired,
-//     protein: PropTypes.number.isRequired,
-//     protein: PropTypes.number.isRequired,
-//     protein: PropTypes.number.isRequired,
-//     protein: PropTypes.number.isRequired,
-//     protein: PropTypes.number.isRequired,
-//     protein: PropTypes.number.isRequired,
-//     protein: PropTypes.number.isRequired,
-//     protein: PropTypes.number.isRequired,
-//     protein: PropTypes.number.isRequired,
-//     protein: PropTypes.number.isRequired
-//   }).isRequired
-// };
 
  const CollapsibleTable = () => {
   let PageSize = 20;
   const [orderData, setOrderData] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState('')
+  const [sellerId, setSellerId] = useState('')
 
   const orders = useSelector((state) => state.order.all_system_orders);
   const dispatch = useDispatch();
-
+  
+ 
   const getOrderByRouteName = () => {
 		const mainOrders = orders.filter(
-			(order) =>
-			 order.routeName === "ShopDC"
+			(order) => {
+        return order.routeName === "ShopDC"
+      }
 		);
 		const sorted = mainOrders.sort(
 			(a, b) => new Date(b.datePlaced) - new Date(a.datePlaced)
@@ -188,6 +121,7 @@ const Row = ({ order }) => {
   
   const sortOrder = () => {
 		return orders && getOrderByRouteName().filter((data) => {
+      console.log(data, '-Notifications')
 			return (
 				data?.status?.startsWith(`${orderData}`) ||
 				data?.buyerDetails[0]?.buyerName !== null && data?.buyerDetails[0]?.buyerName
@@ -200,27 +134,166 @@ const Row = ({ order }) => {
   };
   
   useEffect(() => {
-    dispatch(getAllOrders());
+    setLoading(true)
+    dispatch(getAllOrders()).then(() => {
+      setLoading(false)
+    });
   }, [])
   return (
+    <>
+    <Box
+        sx={{
+          background: '#fff',
+          height: '110px',
+          display: "flex",
+          justifyContent: "space-between",
+          borderTopLeftRadius: '20px',
+          borderTopRightRadius: '20px',
+          p: '30px 5px',
+        }}
+      >
+        <SearchInput 
+          setOrderData={setOrderData}
+        />
+        <div style={{ display: "flex", marginTop: "1%", height: "70%", width: "100%", justifyContent: "end"}}>
+          <p style={{marginTop: "5px"}}>Filter By Status:</p>
+          <p
+            className=""
+            onClick={(e) => {
+              setOrderData("");
+            }}
+            style={{
+              background: "orange",
+              color: "white",
+              padding: "5px",
+              textAlign: "center",
+              borderRadius: "20px",
+              marginRight: "2%",
+              marginLeft: "1%",
+              width: "auto",
+              cursor: "pointer"
+            }}
+          >
+           All Orders
+          </p>
+          <p
+            className=""
+            onClick={(e) => {
+              setOrderData("Placed");
+            }}
+            style={{
+              background: "orange",
+              color: "white",
+              padding: "5px",
+              textAlign: "center",
+              borderRadius: "20px",
+              marginRight: "2%",
+              width: "auto",
+              cursor: "pointer"
+            }}
+          >
+           Placed
+          </p>
+          <p
+            className=""
+            onClick={(e) => {
+              setOrderData("Assigned");
+            }}
+            style={{
+              background: "orange",
+              color: "white",
+              padding: "5px",
+              textAlign: "center",
+              borderRadius: "20px",
+              marginRight: "2%",
+              width: "auto",
+              cursor: "pointer"
+            }}
+          >
+           Assigned
+          </p>
+          <p
+            className=""
+            onClick={(e) => {
+              setOrderData("Accepted");
+            }}
+            style={{
+              background: "orange",
+              color: "white",
+              padding: "5px",
+              textAlign: "center",
+              borderRadius: "20px",
+              marginRight: "2%",
+              width: "auto",
+              cursor: "pointer"
+            }}
+          >
+           Accepted
+          </p>
+          <p
+            className=""
+            onClick={(e) => {
+              setOrderData("Delivered");
+            }}
+            style={{
+              background: "orange",
+              color: "white",
+              padding: "5px",
+              textAlign: "center",
+              borderRadius: "20px",
+              marginRight: "2%",
+              width: "auto",
+              cursor: "pointer"
+            }}
+          >
+           Delivered
+          </p>
+          <p
+            className=""
+            onClick={(e) => {
+              setOrderData("Completed");
+            }}
+            style={{
+              background: "orange",
+              color: "white",
+              padding: "5px",
+              textAlign: "center",
+              borderRadius: "20px",
+              marginRight: "2%",
+              width: "auto",
+              cursor: "pointer"
+            }}
+          >
+           Completed
+          </p>
+          <p
+            className=""
+            onClick={(e) => {
+              setOrderData("Rejected");
+            }}
+            style={{
+              background: "orange",
+              color: "white",
+              padding: "5px",
+              textAlign: "center",
+              borderRadius: "20px",
+              marginRight: "2%",
+              width: "auto",
+              cursor: "pointer"
+            }}
+          >
+           Rejected
+          </p>
+        </div>
+      </Box>
     <TableContainer
       sx={{
         boxShadow: '0px 7px 100px rgba(9, 11, 23, 0.18)'
       }}
       component={Paper}
-    >
-      <Box
-        sx={{
-          background: '#fff',
-          height: '110px',
-          borderTopLeftRadius: '20px',
-          borderTopRightRadius: '20px',
-          p: '30px 35px'
-        }}
-      >
-        <SearchInput />
-      </Box>
+    > 
       <Table
+        
         sx={{
           minWidth: 3000,
           boxShadow: '0px 7px 100px rgba(9, 11, 23, 0.18)'
@@ -229,6 +302,7 @@ const Row = ({ order }) => {
       >
         <TableHead>
           <TableRow
+
             sx={{
               backgroundColor: 'primary.dark',
               height: '70px'
@@ -244,7 +318,6 @@ const Row = ({ order }) => {
             <TableCell sx={{ color: '#ffff' }}>Seller's Name</TableCell>
             <TableCell sx={{ color: '#ffff' }}>Seller's Code</TableCell>
             <TableCell sx={{ color: '#ffff' }}>Seller's Phone</TableCell>
-            <TableCell sx={{ color: '#ffff' }}>Last Updated</TableCell>
             <TableCell sx={{ color: '#ffff' }}>Rating</TableCell>
             <TableCell sx={{ color: '#ffff' }}>CIC Agent</TableCell>
             <TableCell sx={{ color: '#ffff' }}>CIC Agent Follow Up Status</TableCell>
@@ -253,12 +326,29 @@ const Row = ({ order }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {sortOrder().map((row) => (
+
+          { sortOrder().length === 0 ? (
+            <tr className="" style={{ textAlign: "center", margin: "2% auto" }}>
+              <td colSpan={6}>
+                <p style={{ textAlign: "center", paddingLeft: "13%", paddingTop: "5px", paddingBottom: "5px" }} className="m-auto">Fetching Orders...</p>
+              </td>
+            </tr>
+          ) : currentTableData().map((row) => (
             <Row key={row.orderId} order={row} />
           ))}
         </TableBody>
       </Table>
+      <div className="" style={{ display: "flex", justifyContent: "end", margin: "1%"}}>
+        <Pagination
+          className="pagination-bar"
+          currentPage={currentPage}
+          totalCount={sortOrder().length}
+          pageSize={PageSize}
+          onPageChange={(page) => setCurrentPage(page)}
+        />
+			</div>
     </TableContainer>
+    </>
   );
 }
 

@@ -4,7 +4,7 @@ import InputBase from '@mui/material/InputBase';
 import IconButton from '@mui/material/IconButton';
 import { Icon } from '@iconify/react';
 
-export default function SearchInput() {
+export default function SearchInput({setOrderData}) {
   return (
     <Paper
       component="form"
@@ -12,8 +12,8 @@ export default function SearchInput() {
         p: '1px 4px',
         display: 'flex',
         alignItems: 'center',
-        width: 300,
-        backgroundColor: '#DFE3E8'
+        width: 500,
+        backgroundColor: '#DFE3E8',
       }}
     >
       {/* <IconButton sx={{ p: '10px' }} aria-label="menu">
@@ -23,6 +23,7 @@ export default function SearchInput() {
         sx={{ ml: 1, flex: 1, background: 'primary.dark' }}
         placeholder="Search here.."
         inputProps={{ 'aria-label': 'search here' }}
+        onChange={(e) => setOrderData(e.target.value)}
         size="small"
       />
       <IconButton type="submit" sx={{ p: '10px' }} aria-label="search">

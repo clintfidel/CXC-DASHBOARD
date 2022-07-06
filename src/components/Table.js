@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
 import Collapse from '@mui/material/Collapse';
@@ -16,7 +16,8 @@ import { Icon } from '@iconify/react';
 import { Input } from '@mui/material';
 import SearchInput from './SearchInput';
 import RatingComp from './RatingComp';
-import { getAllOrders } from '../redux/order/order.actions'
+import { getAllOrders } from '../redux/order/order.actions';
+import Countdown from 'react-countdown';
 
 function createData(
   date,
@@ -69,6 +70,12 @@ function createData(
 const Row = ({ order }) => {
   const [open, setOpen] = useState(false);
 
+  const date1 = new Date(order.datePlaced);
+  const date2 = new Date();
+  const millidif = Math.abs(date2 - date1);
+  const timeDiff = Math.abs(10 - Math.abs(date2 - date1) / 60000);
+  const minutes = Number(timeDiff.toFixed(0)) * 60000;
+
   return (
     <>
       <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -80,7 +87,13 @@ const Row = ({ order }) => {
         <TableCell component="th" scope="row">
           11-12-2022
         </TableCell>
-        <TableCell>{order.delivery}</TableCell>
+        <TableCell>
+          {Math.abs(millidif) > 600000 ? (
+            'Time Exceeded'
+          ) : (
+            <Countdown date={Date.now() + minutes} />
+          )}
+        </TableCell>
         <TableCell>{order?.status}</TableCell>
         <TableCell>{order?.buyerDetails[0]?.buyerName}</TableCell>
         <TableCell>{order?.buyerCompanyId}</TableCell>
@@ -96,7 +109,6 @@ const Row = ({ order }) => {
         <TableCell></TableCell>
         <TableCell>{order?.specificRouteName}</TableCell>
         <TableCell></TableCell>
-        }
       </TableRow>
       {/* <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
@@ -132,7 +144,7 @@ const Row = ({ order }) => {
       </TableRow> */}
     </>
   );
-}
+};
 
 // Row.propTypes = {
 //   row: PropTypes.shape({
@@ -161,47 +173,48 @@ const Row = ({ order }) => {
 //   }).isRequired
 // };
 
- const CollapsibleTable = () => {
+const CollapsibleTable = () => {
   let PageSize = 20;
-  const [orderData, setOrderData] = useState("");
+  const [orderData, setOrderData] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
   const orders = useSelector((state) => state.order.all_system_orders);
   const dispatch = useDispatch();
 
   const getOrderByRouteName = () => {
-		const mainOrders = orders.filter(
-			(order) =>
-			 order.routeName === "ShopDC"
-		);
-		const sorted = mainOrders.sort(
-			(a, b) => new Date(b.datePlaced) - new Date(a.datePlaced)
-		);
-		return sorted;
+    const mainOrders = orders.filter((order) => order.routeName === 'ShopDC');
+    const sorted = mainOrders.sort((a, b) => new Date(b.datePlaced) - new Date(a.datePlaced));
+    return sorted;
   };
 
   const currentTableData = () => {
-		const firstPageIndex = (currentPage - 1) * PageSize;
-		const lastPageIndex = firstPageIndex + PageSize;
-		return sortOrder().slice(firstPageIndex, lastPageIndex);
-	};
-  
-  const sortOrder = () => {
-		return orders && getOrderByRouteName().filter((data) => {
-			return (
-				data?.status?.startsWith(`${orderData}`) ||
-				data?.buyerDetails[0]?.buyerName !== null && data?.buyerDetails[0]?.buyerName
-					.toLowerCase()
-					.includes(`${orderData.toLowerCase()}`) ||
-				data?.orderId !== null && String(data?.orderId).toLowerCase().includes(`${orderData.toLowerCase()}`) ||
-				data?.routeName !== null && data?.routeName.toLowerCase().includes(`${orderData.toLowerCase()}`)
-			);
-		});
+    const firstPageIndex = (currentPage - 1) * PageSize;
+    const lastPageIndex = firstPageIndex + PageSize;
+    return sortOrder().slice(firstPageIndex, lastPageIndex);
   };
-  
+
+  const sortOrder = () => {
+    return (
+      orders &&
+      getOrderByRouteName().filter((data) => {
+        return (
+          data?.status?.startsWith(`${orderData}`) ||
+          (data?.buyerDetails[0]?.buyerName !== null &&
+            data?.buyerDetails[0]?.buyerName
+              .toLowerCase()
+              .includes(`${orderData.toLowerCase()}`)) ||
+          (data?.orderId !== null &&
+            String(data?.orderId).toLowerCase().includes(`${orderData.toLowerCase()}`)) ||
+          (data?.routeName !== null &&
+            data?.routeName.toLowerCase().includes(`${orderData.toLowerCase()}`))
+        );
+      })
+    );
+  };
+
   useEffect(() => {
     dispatch(getAllOrders());
-  }, [])
+  }, []);
   return (
     <TableContainer
       sx={{
@@ -253,13 +266,13 @@ const Row = ({ order }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {sortOrder().map((row) => (
-            <Row key={row.orderId} order={row} />
-          ))}
+          {sortOrder().map((row) => {
+            return <Row key={row.orderId} order={row} />;
+          })}
         </TableBody>
       </Table>
     </TableContainer>
   );
-}
+};
 
 export default CollapsibleTable;

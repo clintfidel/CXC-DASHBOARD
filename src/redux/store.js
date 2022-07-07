@@ -4,12 +4,15 @@ import thunk from "redux-thunk";
 import { routerReducer, routerMiddleware } from "react-router-redux"
 import userReducer from '../redux/user/user.reducer'
 import orderReducer from '../redux/order/order.reducer'
+import companyReducer from '../redux/company/company.reducer'
+
 
 
 export default function configureStore(history, initialState) {
   const reducers = {
     user: userReducer,
-    order: orderReducer
+    order: orderReducer, 
+    distributor: companyReducer
   };
 
   const middleware = [thunk, routerMiddleware(history)];

@@ -44,7 +44,7 @@ export default function AuthLayout({ children }) {
             color: 'primary.dark'
           }}
         >
-          IBSHOPNOW
+          SHOPDC
         </Typography>
       </RouterLink>
 

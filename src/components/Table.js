@@ -13,18 +13,42 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
+import { makeStyles } from '@mui/styles';
 import { Icon } from '@iconify/react';
+import Modal from '@mui/material/Modal';
+import Button from '@mui/material/Button';
 import { Input } from '@mui/material';
 import SearchInput from './SearchInput';
 import RatingComp from './RatingComp';
 import { getAllOrders } from '../redux/order/order.actions'
 import { getSingleDistributor } from '../redux/company/company.action'
 import Pagination from "../components/Pagination";
+import Countdown from 'react-countdown';
 
 
 const Row = ({ order }) => {
   const [open, setOpen] = useState(false);
-  
+
+  const date1 = new Date(order.datePlaced);
+  const date2 = new Date();
+  const millidif = Math.abs(date2 - date1);
+  const timeDiff = Math.abs(10 - Math.abs(date2 - date1) / 60000);
+  const minutes = Number(timeDiff.toFixed(0)) * 60000;
+  const [openModal, setOpenModal] = React.useState(false);
+  const handleOpen = () => setOpenModal(true);
+  const handleClose = () => setOpenModal(false);
+  const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 600,
+    height: 250,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+  };
   return (
     <>
       <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -34,9 +58,16 @@ const Row = ({ order }) => {
           </IconButton>
         </TableCell>
         <TableCell component="th" scope="row">
-        {moment(order?.datePlaced).format('MMMM Do YYYY')}
+        {moment(order?.datePlaced).format('MMMM Do YYYY h:m:s a')}
         </TableCell>
-        <TableCell>{order.delivery}</TableCell>
+        <TableCell component="th" scope="row">
+        {moment(order?.datePlaced).format('h:m:s a')}
+        </TableCell>
+        <TableCell>
+          {Math.abs(millidif) > 600000 ? (<p style={{ color: 'red'}}>Time Exceeded</p>) : (
+            <Countdown date={Date.now() + minutes} />
+          )}
+        </TableCell>
         <TableCell>{order?.status}</TableCell>
         <TableCell>{order?.buyerDetails[0]?.buyerName}</TableCell>
         <TableCell>{order?.buyerCompanyId}</TableCell>
@@ -44,13 +75,34 @@ const Row = ({ order }) => {
         <TableCell>{getSingleDistributor(order.sellerCompanyId)?.Owner_Name}</TableCell>
         <TableCell>{order.sellerCompanyId}</TableCell>
         <TableCell>{getSingleDistributor(order.sellerCompanyId)?.Owner_Phone}</TableCell>
-        <TableCell>
+        {/* <TableCell>
           <RatingComp />
-        </TableCell>
+        </TableCell> */}
         <TableCell>{!order?.agent || order?.agent === "undefined"  ?  "Nil"  : order?.agent}</TableCell>
         <TableCell></TableCell>
         <TableCell>{!order?.specificRouteName || order?.specificRouteName === "undefined"  ?  "Nil"  : order?.specificRouteName}</TableCell>
-        <TableCell>Test</TableCell>
+        <TableCell>
+        <div>
+            <Button onClick={handleOpen}>Add Comment</Button>
+            <Modal
+              open={openModal}
+              onClose={handleClose}
+              aria-labelledby="modal-modal-title"
+              aria-describedby="modal-modal-description"
+            >
+              <Box sx={style}>
+                <Typography id="modal-modal-title" variant="h6" component="h2">
+                  Add Comment
+                </Typography>
+                <textarea class="form-control" style={{minWidth: "100%", minHeight: "50%", marginTop: "2%", padding: "2%", outline: "none"}} />
+                <div style={{ display: "flex", justifyContent: "end", marginTop: "3%"}}>
+                  <button onClick={handleClose} style={{cursor: "pointer", backgroundColor: "gray", color: "lightgray", padding: "2% 3%", marginRight: "2%", border: "none", outline: "none", borderRadius: "5px"}}>cancel</button>
+                  <button style={{cursor: "pointer", backgroundColor: "#6B0101", color: "#fff",  padding: "2% 3%", border: "none", outline: "none", borderRadius: "5px"}}>save</button>
+                </div>
+              </Box>
+            </Modal>
+          </div>
+        </TableCell>
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
@@ -88,11 +140,17 @@ const Row = ({ order }) => {
       </TableRow>
     </>
   );
-}
+};
+
+const useStyles = makeStyles({
+  customTableContainer: {
+    overflowX: "initial"
+  }
+});
 
  const CollapsibleTable = () => {
-  let PageSize = 20;
-  const [orderData, setOrderData] = useState("");
+  let PageSize = 9;
+  const [orderData, setOrderData] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState('')
   const [sellerId, setSellerId] = useState('')
@@ -102,43 +160,39 @@ const Row = ({ order }) => {
   
  
   const getOrderByRouteName = () => {
-		const mainOrders = orders.filter(
-			(order) => {
-        return order.routeName === "ShopDC"
-      }
-		);
-		const sorted = mainOrders.sort(
-			(a, b) => new Date(b.datePlaced) - new Date(a.datePlaced)
-		);
-		return sorted;
+    const mainOrders = orders.filter((order) => order.routeName === 'ShopDC');
+    const sorted = mainOrders.sort((a, b) => new Date(b.datePlaced) - new Date(a.datePlaced));
+    return sorted;
   };
 
   const currentTableData = () => {
-		const firstPageIndex = (currentPage - 1) * PageSize;
-		const lastPageIndex = firstPageIndex + PageSize;
-		return sortOrder().slice(firstPageIndex, lastPageIndex);
-	};
-  
-  const sortOrder = () => {
-		return orders && getOrderByRouteName().filter((data) => {
-      console.log(data, '-Notifications')
-			return (
-				data?.status?.startsWith(`${orderData}`) ||
-				data?.buyerDetails[0]?.buyerName !== null && data?.buyerDetails[0]?.buyerName
-					.toLowerCase()
-					.includes(`${orderData.toLowerCase()}`) ||
-				data?.orderId !== null && String(data?.orderId).toLowerCase().includes(`${orderData.toLowerCase()}`) ||
-				data?.routeName !== null && data?.routeName.toLowerCase().includes(`${orderData.toLowerCase()}`)
-			);
-		});
+    const firstPageIndex = (currentPage - 1) * PageSize;
+    const lastPageIndex = firstPageIndex + PageSize;
+    return sortOrder().slice(firstPageIndex, lastPageIndex);
   };
-  
+
+  const sortOrder = () => {
+    return (
+      orders &&
+      getOrderByRouteName().filter((data) => {
+        return (
+          data?.status?.startsWith(`${orderData}`) ||
+          (data?.buyerDetails[0]?.buyerName !== null &&
+            data?.buyerDetails[0]?.buyerName
+              .toLowerCase()
+              .includes(`${orderData.toLowerCase()}`)) ||
+          (data?.orderId !== null &&
+            String(data?.orderId).toLowerCase().includes(`${orderData.toLowerCase()}`)) ||
+          (data?.routeName !== null &&
+            data?.routeName.toLowerCase().includes(`${orderData.toLowerCase()}`))
+        );
+      })
+    );
+  };
+
   useEffect(() => {
-    setLoading(true)
-    dispatch(getAllOrders()).then(() => {
-      setLoading(false)
-    });
-  }, [])
+    dispatch(getAllOrders());
+  }, []);
   return (
     <>
     <Box
@@ -310,6 +364,7 @@ const Row = ({ order }) => {
           >
             <TableCell />
             <TableCell sx={{ color: '#ffff' }}>Date of Order</TableCell>
+            <TableCell sx={{ color: '#ffff' }}>Time of Order</TableCell>
             <TableCell sx={{ color: '#ffff' }}>Delivery Countdown</TableCell>
             <TableCell sx={{ color: '#ffff' }}>Order Status</TableCell>
             <TableCell sx={{ color: '#ffff' }}>Buyer's Name</TableCell>
@@ -318,7 +373,7 @@ const Row = ({ order }) => {
             <TableCell sx={{ color: '#ffff' }}>Seller's Name</TableCell>
             <TableCell sx={{ color: '#ffff' }}>Seller's Code</TableCell>
             <TableCell sx={{ color: '#ffff' }}>Seller's Phone</TableCell>
-            <TableCell sx={{ color: '#ffff' }}>Rating</TableCell>
+            {/* <TableCell sx={{ color: '#ffff' }}>Rating</TableCell> */}
             <TableCell sx={{ color: '#ffff' }}>CIC Agent</TableCell>
             <TableCell sx={{ color: '#ffff' }}>CIC Agent Follow Up Status</TableCell>
             <TableCell sx={{ color: '#ffff' }}>Buyer's BDR</TableCell>
@@ -350,6 +405,6 @@ const Row = ({ order }) => {
     </TableContainer>
     </>
   );
-}
+};
 
 export default CollapsibleTable;

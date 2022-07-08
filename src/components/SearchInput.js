@@ -23,7 +23,7 @@ export default function SearchInput({setOrderData}) {
         sx={{ ml: 1, flex: 1, background: 'primary.dark' }}
         placeholder="Search here.."
         inputProps={{ 'aria-label': 'search here' }}
-        onChange={(e) => setOrderData(e.target.value)}
+        onChange={(e) => setOrderData(e.target.value.toLowerCase())}
         size="small"
       />
       <IconButton type="submit" sx={{ p: '10px' }} aria-label="search">

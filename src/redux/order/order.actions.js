@@ -5,6 +5,8 @@ import {
   GET_ALL_ORDERS,
   GET_ALL_ORDERS_BY_DATE,
   DIST_COMPLETED_ORDERS,
+  UPDATE_COMMENT,
+  UPDATE_CIC_FOLLOWUP
 } from "./types";
 import { completedOrdersNet, orderNet } from "../../utils/urls";
 
@@ -53,7 +55,7 @@ export const getSingleOrderByBuyerId = (code) => async (dispatch) => {
 
 export const getAllOrders = () => async (dispatch) => {
   orderNet
-    .get(`GetOrder/GetAll`)
+    .post(`GetOrder/GetOrderByRouteName`, { routeName: "ShopDc" })
     .then((response) => {
       return dispatch({
         type: GET_ALL_ORDERS,
@@ -65,8 +67,27 @@ export const getAllOrders = () => async (dispatch) => {
     });
 };
 
+export const updatecomment = (orderId, CIC_Comment) => (dispatch) => {
+  orderNet.patch(`/UpdateOrder/UpdateCICComment/${orderId}`, CIC_Comment)
+  .then((response) => {
+    return dispatch({
+      type: UPDATE_COMMENT,
+      comment: response.data.message,
+    });
+  })
+}
+export const updateFollowUp = (orderId, values) => (dispatch) => {
+  orderNet.patch(`/UpdateOrder/UpdateCICFollowUp/${orderId}`, values)
+  .then((response) => {
+    return dispatch({
+      type: UPDATE_CIC_FOLLOWUP,
+      comment: response.data,
+    });
+  })
+}
+
 export const getAllOrdersByDateRange =
-  (startRange, stopRange, ) => async (dispatch) => {
+  (startRange, stopRange) => async (dispatch) => {
     orderNet
       .get(
         "GetOrder/GetAll/" +

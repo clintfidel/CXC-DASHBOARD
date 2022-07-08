@@ -5,7 +5,8 @@ import {
   GET_ALL_ORDERS,
   DIST_COMPLETED_ORDERS,
   GET_ALL_ORDERS_BY_DATE,
-} from "./types";
+  SORT_ORDERS_BY_DATE
+} from './types';
 
 const initial_state = {
   order: {},
@@ -15,6 +16,7 @@ const initial_state = {
   all_orders_by_date: [],
   dist_completed_orders: [],
   loading: true,
+  sort_date_value: []
 };
 
 const orderReducer = (state = initial_state, action) => {
@@ -27,17 +29,20 @@ const orderReducer = (state = initial_state, action) => {
         ...state,
         order: action.single_order,
         loadingsales: false,
-        loading: false,
+        loading: false
       };
     }
     case VIEW_ORDERS_BY_BUYER_CODE: {
       return { ...state, buyer_orders: action.order };
     }
+    case SORT_ORDERS_BY_DATE: {
+      return { ...state, sort_date_value: action.payload };
+    }
     case GET_ALL_ORDERS: {
       return { ...state, all_system_orders: action.all_system_orders };
     }
     case GET_ALL_ORDERS_BY_DATE: {
-      return { ...state, all_orders_by_date: action.all_orders_by_date, loading:action.loading };
+      return { ...state, all_orders_by_date: action.all_orders_by_date, loading: action.loading };
     }
     case DIST_COMPLETED_ORDERS: {
       return { ...state, dist_completed_orders: action.dist_completed_orders };

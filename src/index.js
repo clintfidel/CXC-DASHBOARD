@@ -5,9 +5,11 @@ import ReactDOM from 'react-dom';
 import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { createBrowserHistory } from "history";
+import jwtDecode from 'jwt-decode';
 import { Provider } from 'react-redux';
 import configureStore from './redux/store'
-import { PersistGate } from 'redux-persist/integration/react';
+import {setAuthorizationToken} from './utils/setAuthorization';
+import { SET_CURRENT_USER } from './redux/user/types';
 import App from './App';
 import './assets/style.scss';
 
@@ -21,6 +23,16 @@ const history = createBrowserHistory({ basename: baseUrl });
 const initialState = window.initialReduxState;
 const store = configureStore(history, initialState);
 
+const token = localStorage.getItem('token');
+
+if (token) {
+  setAuthorizationToken(token);
+  store.dispatch({
+    type: SET_CURRENT_USER,
+    user: jwtDecode(token),
+    authenticated: true
+  });
+}
 // ----------------------------------------------------------------------
 
 ReactDOM.render(

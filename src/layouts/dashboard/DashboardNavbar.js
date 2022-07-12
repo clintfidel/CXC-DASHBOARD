@@ -1,10 +1,9 @@
 import PropTypes from 'prop-types';
 import { Icon } from '@iconify/react';
+import { useDispatch, useSelector } from 'react-redux';
 import menu2Fill from '@iconify/icons-eva/menu-2-fill';
-// material
 import { Box, Stack, AppBar, Toolbar, IconButton, Typography } from '@mui/material';
 import { alpha, styled } from '@mui/material/styles';
-// components
 import { MHidden } from '../../components/@material-extend';
 //
 
@@ -40,6 +39,8 @@ DashboardNavbar.propTypes = {
 };
 
 export default function DashboardNavbar({ onOpenSidebar }) {
+  const user = useSelector((state) => state.user.user);
+
   return (
     <RootStyle style={{ borderBottom: "1px solid gray"}}>
       <ToolbarStyle>
@@ -58,7 +59,7 @@ export default function DashboardNavbar({ onOpenSidebar }) {
           <NotificationsPopover />
           <Stack direction="row" alignItems="center" spacing={{ xs: 0.5, sm: 1.5 }}>
             <AccountPopover />
-            <Typography sx={{ color: 'primary.dark' }}>solomon.igbigbi@ng.ab-inbev.com</Typography>
+            <Typography sx={{ color: 'primary.dark' }}>{user?.email ? user?.email : "clintfidel@gmail.com"}</Typography>
           </Stack>
         </Stack>
       </ToolbarStyle>

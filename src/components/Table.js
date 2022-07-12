@@ -29,25 +29,17 @@ import Countdown from 'react-countdown';
 import { getAllOrders, updatecomment, updateFollowUp } from '../redux/order/order.actions'
 import { getAllDistributor } from '../redux/company/company.action'
 import { getAllProducts } from '../redux/product/product.actions'
-
 import Pagination from "../components/Pagination";
 
-
-
-const Row = ({ order, distributors, allProducts, generateDitributorDetail, getProductDetails }) => {
+const Row = ({ order, generateDitributorDetail, getProductDetails }) => {
   const [open, setOpen] = useState(false);
   const [deliveryTimer, setDeliveryTimer] = useState(0);
   const [minutesTimer, setMinutesTimer] = useState(0);
   const [milliseconds, setMilliseconds] = useState(0);
   const [milliseconds2, setMillisecond2s] = useState(0);
 
-  // const [timeMessage, setTimeMessage] = useState({
-  //   delivery: "",
-  //   acceep
-  // })
-
   const getMinuteTime = () => {
-    const date1 = new Date(order.datePlaced);
+    const date1 = new Date(order?.datePlaced);
     const date2 = new Date();
 
     setMilliseconds(Math.abs(date2 - date1));
@@ -56,17 +48,15 @@ const Row = ({ order, distributors, allProducts, generateDitributorDetail, getPr
   };
 
   const getDeliveryTime = () => {
-    const date1 = new Date(order.datePlaced);
+    const date1 = new Date(order?.datePlaced);
     const date2 = new Date();
 
     setMillisecond2s(Math.abs(date2 - date1));
     const timeDiff = Math.abs(24 - Math.abs(date2 - date1) / 3600000);
     setDeliveryTimer(Number(timeDiff.toFixed(0)) * 3600000);
 
-    // console.log(Number(timeDiff.toFixed(0)) * 3600000);
   };
   const [cicStatus, setCicStatus] = useState('Open');
-  const [orderId2, setOrderId2] = useState('')
   const [agent, setAgent] = useState('')
   const [loader, setLoader] = useState(false)
   const [orderId, setOrderId] = useState('')

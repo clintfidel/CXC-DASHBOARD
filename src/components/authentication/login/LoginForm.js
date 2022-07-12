@@ -45,12 +45,12 @@ export default function LoginForm() {
     validationSchema: LoginSchema,
     onSubmit: async () => {
       setIsSubmitting(true);
-      // const response = await dispatch(login(values));
+      const response = await dispatch(login(values));
 
-      // if (response.errors) {
-      //   setErrorMessage(response.message);
-      //   return setIsSubmitting(false);
-      // }
+      if (response.errors) {
+        setErrorMessage(response.msg);
+        return setIsSubmitting(false);
+      }
       return navigate('/admin');
     }
   });

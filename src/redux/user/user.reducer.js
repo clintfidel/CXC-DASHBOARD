@@ -1,23 +1,15 @@
+import {
+  SET_CURRENT_USER
+} from './types';
+
 const INITIAL_STATE = {
-  data: null
+  user: {}
 };
 
 const userReducer = (state = INITIAL_STATE, action) => {
   switch (action.type) {
-    case 'ADD_USER':
-      return {
-        ...state,
-        data: { ...action.payload }
-      };
-
-    case 'REMOVE_TOKEN':
-      return {
-        ...state,
-        token: null,
-        user: null
-      };
-    default:
-      return state;
+    case SET_CURRENT_USER:
+      return { ...state, user: action.user, authenticated: action.authenticated };
   }
 };
 

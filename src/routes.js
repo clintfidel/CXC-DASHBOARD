@@ -15,15 +15,14 @@ const admin = 'ADMIN';
 
 export default function Router() {
   return useRoutes([
+    { path: '/', element: <Login /> },
     {
-      path: '/',
+      path: '/admin',
       element: <DashboardLayout />,
       children: [
-        { path: '/admin', element: <DashboardApp /> },
         { path: '*', element: <Navigate to="/404" /> }
       ]
     },
     { path: '*', element: <Navigate to="/404" replace /> },
-    { path: '/login', element: <Login /> }
   ]);
 }

@@ -5,9 +5,12 @@ import {
   GET_ALL_ORDERS,
   GET_ALL_ORDERS_BY_DATE,
   DIST_COMPLETED_ORDERS,
+  UPDATE_COMMENT,
+  UPDATE_CIC_FOLLOWUP,
   SORT_ORDERS_BY_DATE
-} from './types';
-import { completedOrdersNet, orderNet } from '../../utils/urls';
+
+} from "./types";
+import { completedOrdersNet, orderNet } from "../../utils/urls";
 
 export const getAllCompletedOrdersByDistributor = (id) => async (dispatch) => {
   try {
@@ -53,7 +56,7 @@ export const getSingleOrderByBuyerId = (code) => async (dispatch) => {
 
 export const getAllOrders = () => async (dispatch) => {
   orderNet
-    .get(`GetOrder/GetAll`)
+    .post(`GetOrder/GetOrderByRouteName`, { routeName: "ShopDc" })
     .then((response) => {
       return dispatch({
         type: GET_ALL_ORDERS,
@@ -64,6 +67,33 @@ export const getAllOrders = () => async (dispatch) => {
       return;
     });
 };
+
+export const updatecomment = (orderId, CIC_Comment) => (dispatch) => {
+  orderNet.patch(`/UpdateOrder/UpdateCICComment/${orderId}`, CIC_Comment)
+  .then((response) => {
+    return dispatch({
+      type: UPDATE_COMMENT,
+      comment: response.data.message,
+    });
+  })
+}
+export const updateFollowUp = (orderId, values) => (dispatch) => {
+  orderNet.patch(`/UpdateOrder/UpdateCICFollowUp/${orderId}`, values)
+  .then((response) => {
+    return dispatch({
+      type: UPDATE_CIC_FOLLOWUP,
+      comment: response.data,
+    });
+  })
+}
+
+export const setLoadingToDefault =
+  () => async (dispatch) => {
+    return dispatch({
+      type: GET_ALL_ORDERS_BY_DATE,
+      loading: true,
+    });
+  };
 
 export const sortOrderDate = (data) => async (dispatch) => {
   console.log(data);
@@ -85,13 +115,6 @@ export const getAllOrdersByDateRange = (startRange, stopRange) => async (dispatc
     .catch((error) => {
       return;
     });
-};
-
-export const setLoadingToDefault = () => async (dispatch) => {
-  return dispatch({
-    type: GET_ALL_ORDERS_BY_DATE,
-    loading: true
-  });
 };
 
 export const getDistOrdersByDateRange = (startRange, stopRange, dist_code) => async (dispatch) => {

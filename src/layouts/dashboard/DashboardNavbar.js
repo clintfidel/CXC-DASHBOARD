@@ -1,16 +1,17 @@
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Icon } from '@iconify/react';
+import { useDispatch, useSelector } from 'react-redux';
 import menu2Fill from '@iconify/icons-eva/menu-2-fill';
-// material
 import { Box, Stack, AppBar, Toolbar, IconButton, Typography } from '@mui/material';
 import { alpha, styled } from '@mui/material/styles';
-// components
 import { MHidden } from '../../components/@material-extend';
 //
 
 import AccountPopover from './AccountPopover';
 import LanguagePopover from './LanguagePopover';
 import NotificationsPopover from './NotificationsPopover';
+import { login } from '../../redux/user/user.actions';
 
 // const DRAWER_WIDTH = 280;
 const APPBAR_MOBILE = 64;
@@ -40,6 +41,12 @@ DashboardNavbar.propTypes = {
 };
 
 export default function DashboardNavbar({ onOpenSidebar }) {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(login())
+  })
+  const user = useSelector((state) => state.user.user);
   return (
     <RootStyle style={{ borderBottom: "1px solid gray"}}>
       <ToolbarStyle>
@@ -55,10 +62,10 @@ export default function DashboardNavbar({ onOpenSidebar }) {
         <Box sx={{ flexGrow: 1 }} />
 
         <Stack direction="row" alignItems="center" spacing={{ xs: 0.5, sm: 4 }}>
-          <NotificationsPopover />
+          {/* <NotificationsPopover /> */}
           <Stack direction="row" alignItems="center" spacing={{ xs: 0.5, sm: 1.5 }}>
             <AccountPopover />
-            <Typography sx={{ color: 'primary.dark' }}>solomon.igbigbi@ng.ab-inbev.com</Typography>
+            <Typography sx={{ color: 'primary.dark' }}>{user?.user?.email !== undefined ? user?.user?.email : "clintfidel@gmail.com"}</Typography>
           </Stack>
         </Stack>
       </ToolbarStyle>

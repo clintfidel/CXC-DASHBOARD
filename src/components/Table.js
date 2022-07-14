@@ -29,9 +29,11 @@ import Countdown from 'react-countdown';
 import { getAllOrders, updatecomment, updateFollowUp } from '../redux/order/order.actions'
 import { getAllDistributor } from '../redux/company/company.action'
 import { getAllProducts } from '../redux/product/product.actions'
+import { getAllCustomers } from '../redux/customer/customer.action'
+
 import Pagination from "../components/Pagination";
 
-const Row = ({ order, generateDitributorDetail, getProductDetails }) => {
+const Row = ({ order, generateDitributorDetail, getProductDetails, generateCustomerDetail }) => {
   const [open, setOpen] = useState(false);
   const [textDisplayAccept, setTextDisplayAccept] = useState('');
   const [textDisplayDeliver, setTextDisplayDeliver] = useState('');
@@ -123,7 +125,7 @@ const Row = ({ order, generateDitributorDetail, getProductDetails }) => {
 
   const setCountDown = () => {
 
-    if (acceptanceCountdown === '' && deliveryCountdown === '') {
+    // if (acceptanceCountdown === '' && deliveryCountdown === '') {
       const datePlaced = new Date((new Date()))
       const diff = Math.floor((new Date().getTime() - new Date(order.datePlaced).getTime()) / (60000));
       const minAcceptanceTime = 10; // In minutes
@@ -132,9 +134,11 @@ const Row = ({ order, generateDitributorDetail, getProductDetails }) => {
         let countDown = minAcceptanceTime - diff;
         countDown = countDown < 10 ? `0${countDown}` : countDown;
         setAcceptanceCountdown(`${countDown}:00`);
-      } else if (diff < minAcceptanceTime && order?.staus === "Accepted") {
-        setAcceptanceCountdown('Order Accepted on Time');
-      } else {
+      } 
+      // else if (diff < minAcceptanceTime && order?.staus === "Accepted") {
+      //   setAcceptanceCountdown('Order Accepted on Time');
+      // } 
+      else {
         setAcceptanceCountdown('Time Exceeded');
       }
 
@@ -146,13 +150,15 @@ const Row = ({ order, generateDitributorDetail, getProductDetails }) => {
         min = min < 10 ? `0${min}` : `${min}`;
         const deliveryCountDown = `${hr}:${min}:00`
         setDeliveryCountdown(deliveryCountDown);
-      } else if (diff < minDeliveryTime && order?.staus === "Delivered") {
-        setAcceptanceCountdown('Order Delivered on Time');
-      } else {
+      } 
+      // else if (diff < minDeliveryTime && order?.staus === "Delivered") {
+      //   setAcceptanceCountdown('Order Delivered on Time');
+      // } 
+      else {
         setDeliveryCountdown('Time Exceeded')
       }
 
-    }
+    // }
 
     return null;
   }
@@ -260,11 +266,13 @@ const Row = ({ order, generateDitributorDetail, getProductDetails }) => {
         </TableCell> */}
         <TableCell style={{ padding: "2px" }}>{order?.status}</TableCell>
         <TableCell style={{ padding: "2px" }}>{order?.buyerDetails[0]?.buyerName}</TableCell>
-        <TableCell style={{ padding: "2px" }}>{order?.buyerCompanyId}</TableCell>
+        <TableCell style={{ padding: "2px" }}>{generateCustomerDetail(order?.buyerCompanyId)?.BB_Code}</TableCell>
         <TableCell style={{ padding: "2px" }}>{order?.buyerDetails[0]?.buyerPhoneNumber}</TableCell>
-        <TableCell style={{ padding: "2px" }}>{generateDitributorDetail(order?.sellerCompanyId)?.company_name}</TableCell>
+        <TableCell style={{ padding: "2px" }}>{!generateDitributorDetail(order?.sellerCompanyId)?.company_name ? generateCustomerDetail(order?.sellerCompanyId, 'Bulkbreaker')?.CUST_Name : generateDitributorDetail(order?.sellerCompanyId)?.company_name}</TableCell>
         <TableCell style={{ padding: "2px" }}>{generateDitributorDetail(order?.sellerCompanyId)?.sap_code}</TableCell>
         <TableCell style={{ padding: "2px" }}>{generateDitributorDetail(order?.sellerCompanyId)?.Owner_Phone}</TableCell>
+        <TableCell style={{ padding: "2px", textTransform: "lowercase" }}>{generateCustomerDetail(order?.buyerCompanyId).sales_rep_email}</TableCell>
+
         {/* <TableCell>
           <RatingComp />
         </TableCell> */}
@@ -481,12 +489,26 @@ const CollapsibleTable = () => {
   const orders = useSelector((state) => state.order.all_system_orders);
   const distributors = useSelector((state) => state.distributor.all_distributors);
   const allProducts = useSelector((state) => state.product.allProducts);
+  const allCustomers = useSelector((state) => state.customer.all_customers);
+
   // const { sort_date_value } = useSelector((state) => state.order);
 
   const generateDitributorDetail = (sellerCompanyId) => {
     const x = distributors.find((company) => {
       if (company.SYS_Code === sellerCompanyId) {
         return company;
+      }
+    })
+    return x;
+  }
+
+  const generateCustomerDetail = (buyerCompanyId, type) => {
+    const x = allCustomers.find((buyer) => {
+      if (buyer.SF_Code === buyerCompanyId && !type) {
+        return buyer;
+      }
+      else if(buyer.SF_Code === buyerCompanyId && buyer?.CUST_Type === type) {
+        return buyer
       }
     })
     return x;
@@ -509,9 +531,12 @@ const CollapsibleTable = () => {
 
 
   useEffect(() => {
+    console.log(allCustomers,orders, '------->');
+    
     dispatch(getAllOrders());
     dispatch(getAllDistributor('Nigeria'))
     dispatch(getAllProducts('Nigeria'))
+    dispatch(getAllCustomers('Nigeria'))
 
   }, []);
 
@@ -547,8 +572,9 @@ const CollapsibleTable = () => {
       "Date And Time Completed": order?.orderStatus[0].dateCompleted !== null ? moment(order?.orderStatus[0].dateCompleted).format('MMMM Do YYYY h:m:s a') : "Not Available",
       "Order Status": order?.status,
       "Buyer's Name": order?.buyerDetails[0]?.buyerName,
-      "Buyer's Code": order?.buyerCompanyId,
+      "Buyer's Code": generateCustomerDetail(order?.buyerCompanyId).BB_Code,
       "Buyer's Phone": order?.buyerDetails[0]?.buyerPhoneNumber,
+      "BDR Email": generateCustomerDetail(order?.buyerCompanyId).sales_rep_email,
       "Total Amount": order?.totalPrice,
       "Quantity": order?.noOfProduct,
       "Seller's Name": generateDitributorDetail(order?.sellerCompanyId)?.company_name,
@@ -837,6 +863,8 @@ const CollapsibleTable = () => {
               <TableCell style={{padding: "1px 5px"}} sx={{ color: '#ffff' }}>Seller's Name</TableCell>
               <TableCell style={{padding: "1px 5px"}} sx={{ color: '#ffff' }}>Seller's Code</TableCell>
               <TableCell style={{padding: "1px 5px"}} sx={{ color: '#ffff' }}>Seller's Phone</TableCell>
+              <TableCell style={{padding: "1px 5px"}} sx={{ color: '#ffff' }}>BDR Email</TableCell>
+
               {/* <TableCell sx={{ color: '#ffff' }}>Rating</TableCell> */}
               <TableCell style={{padding: "1px 5px"}} sx={{ color: '#ffff' }}>CIC Agent</TableCell>
               <TableCell style={{padding: "1px 5px"}} sx={{ color: '#ffff' }}>Agent Status</TableCell>
@@ -853,7 +881,7 @@ const CollapsibleTable = () => {
                 </td>
               </tr>
             ) : orders && currentTableData().map((row) => (
-              <Row key={row.orderId} order={row} distributors={distributors} allProducts={allProducts} generateDitributorDetail={generateDitributorDetail} getProductDetails={getProductDetails} />
+              <Row key={row.orderId} order={row} generateDitributorDetail={generateDitributorDetail} getProductDetails={getProductDetails} generateCustomerDetail={generateCustomerDetail} />
             ))}
           </TableBody>
         </Table>

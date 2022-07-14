@@ -36,6 +36,14 @@ export const completedOrdersNet = axios.create({
     "https://dmsprd20.azure-api.net/order/GetOrder/GetCompletedOrderBySellerCompanyId/",
 });
 
+export const customerNet = axios.create({
+  baseURL: "https://dmsprd20.azure-api.net/customer/",
+});
+
+export const customerNetBase = axios.create({
+  baseURL: "https://dmsprd20.azure-api.net/customer/customer",
+});
+
 
 
 const urls = {
@@ -43,6 +51,8 @@ const urls = {
   productNet,
   orderNet,
   userNet,
+  customerNetBase,
+  customerNet
 };
 
 export default urls;

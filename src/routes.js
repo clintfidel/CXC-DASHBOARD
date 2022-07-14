@@ -15,7 +15,7 @@ const admin = 'ADMIN';
 
 export default function Router() {
   return useRoutes([
-    { path: '/login', element: <Login /> },
+    { path: '/', element: <Login /> },
     {
       path: '/admin',
       element: <DashboardLayout />,

@@ -30,6 +30,8 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [successMessage, setsuccessMessage] = useState(null);
+
 
   const LoginSchema = Yup.object().shape({
     email: Yup.string().email('Email must be a valid email address').required('Email is required'),
@@ -40,18 +42,19 @@ export default function LoginForm() {
     initialValues: {
       email: '',
       password: '',
-      remember: true
     },
     validationSchema: LoginSchema,
     onSubmit: async () => {
       setIsSubmitting(true);
       const response = await dispatch(login(values));
-
+      console.log(response, '--------response');
+      
       if (response.errors) {
         setErrorMessage(response.msg);
         return setIsSubmitting(false);
       }
       return navigate('/admin');
+     
     }
   });
 
@@ -68,11 +71,16 @@ export default function LoginForm() {
           <Alert severity="error">{errorMessage}</Alert>
         </Stack>
       )}
+      {successMessage && (
+        <Stack mb={3}>
+          <Alert severity="success">{successMessage}</Alert>
+        </Stack>
+      )}
       <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
         <Stack spacing={3}>
           <TextField
             fullWidth
-            autoComplete="username"
+            autoComplete="email"
             type="email"
             label="Email address"
             {...getFieldProps('email')}
@@ -82,7 +90,7 @@ export default function LoginForm() {
 
           <TextField
             fullWidth
-            autoComplete="current-password"
+            autoComplete="password"
             type={showPassword ? 'text' : 'password'}
             label="Password"
             {...getFieldProps('password')}

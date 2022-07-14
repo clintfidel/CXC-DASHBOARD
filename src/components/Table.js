@@ -33,30 +33,15 @@ import Pagination from "../components/Pagination";
 
 const Row = ({ order, generateDitributorDetail, getProductDetails }) => {
   const [open, setOpen] = useState(false);
-  const [deliveryTimer, setDeliveryTimer] = useState(0);
-  const [minutesTimer, setMinutesTimer] = useState(0);
+  const [textDisplayAccept, setTextDisplayAccept] = useState('');
+  const [textDisplayDeliver, setTextDisplayDeliver] = useState('');
   const [milliseconds, setMilliseconds] = useState(0);
   const [milliseconds2, setMillisecond2s] = useState(0);
+  const [acceptanceCountdown, setAcceptanceCountdown] = useState('');
+  const [deliveryCountdown, setDeliveryCountdown] = useState('');
 
-  const getMinuteTime = () => {
-    const date1 = new Date(order?.datePlaced);
-    const date2 = new Date();
 
-    setMilliseconds(Math.abs(date2 - date1));
-    const timeDiff = Math.abs(10 - Math.abs(date2 - date1) / 60000);
-    setMinutesTimer(Number(timeDiff.toFixed(0)) * 60000);
-  };
-
-  const getDeliveryTime = () => {
-    const date1 = new Date(order?.datePlaced);
-    const date2 = new Date();
-
-    setMillisecond2s(Math.abs(date2 - date1));
-    const timeDiff = Math.abs(24 - Math.abs(date2 - date1) / 3600000);
-    setDeliveryTimer(Number(timeDiff.toFixed(0)) * 3600000);
-
-  };
-  const [cicStatus, setCicStatus] = useState('Open');
+  const [cicStatus, setCicStatus] = useState(order?.CIC_Follow_Up? order?.CIC_Follow_Up : 'Open');
   const [agent, setAgent] = useState('')
   const [loader, setLoader] = useState(false)
   const [orderId, setOrderId] = useState('')
@@ -75,10 +60,6 @@ const Row = ({ order, generateDitributorDetail, getProductDetails }) => {
   const handleCloseView = () => setOpenViewModal(false)
   const handleOpen = () => setOpenModal(true);
   const handleClose = () => setOpenModal(false);
-
-  useState(() => {
-
-  }, [cicStatus]);
   // const generateDitributorDetail = (sellerCompanyId) => {
   //   const x = distributors.find((company) => {
   //     if (company.SYS_Code === sellerCompanyId) {
@@ -88,6 +69,94 @@ const Row = ({ order, generateDitributorDetail, getProductDetails }) => {
   //   return x;
   // }
 
+  const startCountDown = () => {
+
+    setInterval(() => {
+      if (acceptanceCountdown && acceptanceCountdown !== 'Time Exceeded') {
+        let newCountdown = acceptanceCountdown.split(':');
+
+        if (Number.parseInt(newCountdown[0]) == 0 && Number.parseInt(newCountdown[1]) == 0) {
+          setAcceptanceCountdown('Time Exceeded');
+        }
+
+        if (Number.parseInt(newCountdown[1]) == 0) {
+          let min = Number.parseInt(newCountdown[0]) - 1;
+          min = min < 10 ? `0${min}` : min;
+          setAcceptanceCountdown(`${min}:59`);
+        } else {
+          let sec = Number.parseInt(newCountdown[1]) - 1;
+          sec = sec < 10 ? `0${sec}` : sec;
+          setAcceptanceCountdown(`${newCountdown[0]}:${sec}`);
+        }
+      }
+
+      if (deliveryCountdown && deliveryCountdown !== 'Time Exceeded') {
+        let newDeliveryCountdown = deliveryCountdown.split(':');
+
+
+        if (Number.parseInt(newDeliveryCountdown[0]) == 0 && Number.parseInt(newDeliveryCountdown[1]) == 0 && Number.parseInt(newDeliveryCountdown[2]) == 0) {
+          setDeliveryCountdown('Time Exceeded');
+        }
+
+        if (Number.parseInt(newDeliveryCountdown[2]) !== 0) {
+          let sec = Number.parseInt(newDeliveryCountdown[2]) - 1;
+          sec = sec < 10 ? `0${sec}` : sec;
+          setDeliveryCountdown(`${deliveryCountdown[0]}:${deliveryCountdown[1]}:${sec}`)
+        }
+
+        if (Number.parseInt(newDeliveryCountdown[2]) === 0 && Number.parseInt(newDeliveryCountdown[1]) !== 0) {
+          let min = Number.parseInt(newDeliveryCountdown[1]) - 1;
+          min = min < 10 ? `0${min}` : min;
+          setDeliveryCountdown(`${newDeliveryCountdown[0]}:${min}:59`);
+        }
+
+        if (Number.parseInt(newDeliveryCountdown[2]) === 0 && Number.parseInt(newDeliveryCountdown[1]) === 0) {
+          let hr = Number.parseInt(newDeliveryCountdown[1]) - 1;
+          hr = hr < 10 ? `0${hr}` : hr;
+          setDeliveryCountdown(`${hr}:${59}:59`);
+        }
+
+      }
+    }, 1000);
+    return null;
+  }
+
+  const setCountDown = () => {
+
+    if (acceptanceCountdown === '' && deliveryCountdown === '') {
+      const datePlaced = new Date((new Date()))
+      const diff = Math.floor((new Date().getTime() - new Date(order.datePlaced).getTime()) / (60000));
+      const minAcceptanceTime = 10; // In minutes
+      const minDeliveryTime = 1440;
+      if (diff < minAcceptanceTime) {
+        let countDown = minAcceptanceTime - diff;
+        countDown = countDown < 10 ? `0${countDown}` : countDown;
+        setAcceptanceCountdown(`${countDown}:00`);
+      } else if (diff < minAcceptanceTime && order?.staus === "Accepted") {
+        setAcceptanceCountdown('Order Accepted on Time');
+      } else {
+        setAcceptanceCountdown('Time Exceeded');
+      }
+
+      if (diff < minDeliveryTime) {
+        const countDown = minDeliveryTime - diff;
+        let hr = Math.floor(countDown / 60);
+        let min = countDown % 60;
+        hr = hr < 10 ? `0${hr}` : `${hr}`;
+        min = min < 10 ? `0${min}` : `${min}`;
+        const deliveryCountDown = `${hr}:${min}:00`
+        setDeliveryCountdown(deliveryCountDown);
+      } else if (diff < minDeliveryTime && order?.staus === "Delivered") {
+        setAcceptanceCountdown('Order Delivered on Time');
+      } else {
+        setDeliveryCountdown('Time Exceeded')
+      }
+
+    }
+
+    return null;
+  }
+
   const handleSubmit = (orderId, agentName, cicStatus) => {
     console.log(cicStatus)
     const values = {
@@ -96,7 +165,6 @@ const Row = ({ order, generateDitributorDetail, getProductDetails }) => {
     }
     dispatch(updateFollowUp(orderId, values))
     getAllOrders()
-    // window.location.reload();
   }
 
 
@@ -123,9 +191,30 @@ const Row = ({ order, generateDitributorDetail, getProductDetails }) => {
     }
     await dispatch(updatecomment(orderId, cicComment))
     handleSubmit(orderId, agent, cicStatus)
+    console.log(cicStatus, '-----cicStatus')
     dispatch(getAllOrders());
     setComment("");
     handleClose()
+    window.location.reload();
+
+  }
+
+  const displayText = () => {
+    if (acceptanceCountdown === 'Time Exceeded') {
+      setTextDisplayAccept(<p style={{ color: 'red' }}>Time Exceeded</p>)
+    } else if (acceptanceCountdown === 'Order Accepted on Time') {
+      setTextDisplayAccept(<p style={{ color: 'green' }}>Order Accepted on Time</p>)
+    } else {
+      setTextDisplayAccept(acceptanceCountdown)
+    }
+
+    if (deliveryCountdown === 'Time Exceeded') {
+      setTextDisplayDeliver(<p style={{ color: 'red' }}>Time Exceeded</p>)
+    } else if (deliveryCountdown === 'Order Delivered on Time') {
+      setTextDisplayDeliver(<p style={{ color: 'green' }}>Order Delivered on Time</p>)
+    } else {
+      setTextDisplayDeliver(deliveryCountdown)
+    }
   }
 
   const style = {
@@ -142,57 +231,47 @@ const Row = ({ order, generateDitributorDetail, getProductDetails }) => {
   };
 
   useEffect(() => {
-    getDeliveryTime();
-    getMinuteTime();
-  }, []);
+    setCountDown()
+    displayText()
+    // startCountDown()
+  }, [acceptanceCountdown, deliveryCountdown]);
 
   return (
     <>
       <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
-        <TableCell>
+        <TableCell style={{ padding: "2px" }}>
           <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
             {open ? <Icon icon="mdi:menu-down" /> : <Icon icon="mdi:menu-up" />}
           </IconButton>
         </TableCell>
-        <TableCell component="th" scope="row">
-          {moment(order?.datePlaced).format('MMMM Do YYYY h:m:s a')}
+        <TableCell style={{ padding: "2px" }} component="th" scope="row">
+          {`${moment(order?.datePlaced).format('MMMM Do')}, ${moment(order?.datePlaced).format('hh:mm')}`}
         </TableCell>
-        <TableCell component="th" scope="row">
-          {moment(order?.datePlaced).format('h:m:s a')}
+        <TableCell style={{ padding: "2px", paddingLeft: '15px' }}>
+          {textDisplayAccept}
         </TableCell>
-        <TableCell>
-          {Math.abs(milliseconds) > 600000 ? (
-            <p style={{ color: 'red' }}>Time Exceeded</p>
-          ) : (
-              <Countdown date={Date.now() + minutesTimer} />
-            )}
-        </TableCell>
-        <TableCell>
-          {Math.abs(milliseconds2) > 86400000 ? (
-            <p style={{ color: 'red' }}>Time Exceeded</p>
-          ) : (
-              <Countdown date={Date.now() + deliveryTimer} />
-            )}
+        <TableCell style={{ padding: "2px" }}>
+          {textDisplayDeliver}
         </TableCell>
         {/* <TableCell>
           {Math.abs(millidif) > 600000 ? (<p style={{ color: 'red'}}>Time Exceeded</p>) : (
             <Countdown date={Date.now() + sixtyMinutes} />
           )}
         </TableCell> */}
-        <TableCell>{order?.status}</TableCell>
-        <TableCell>{order?.buyerDetails[0]?.buyerName}</TableCell>
-        <TableCell>{order?.buyerCompanyId}</TableCell>
-        <TableCell>{order?.buyerDetails[0]?.buyerPhoneNumber}</TableCell>
-        <TableCell>{generateDitributorDetail(order?.sellerCompanyId)?.company_name}</TableCell>
-        <TableCell>{order.sellerCompanyId}</TableCell>
-        <TableCell>{generateDitributorDetail(order?.sellerCompanyId)?.Owner_Phone}</TableCell>
+        <TableCell style={{ padding: "2px" }}>{order?.status}</TableCell>
+        <TableCell style={{ padding: "2px" }}>{order?.buyerDetails[0]?.buyerName}</TableCell>
+        <TableCell style={{ padding: "2px" }}>{order?.buyerCompanyId}</TableCell>
+        <TableCell style={{ padding: "2px" }}>{order?.buyerDetails[0]?.buyerPhoneNumber}</TableCell>
+        <TableCell style={{ padding: "2px" }}>{generateDitributorDetail(order?.sellerCompanyId)?.company_name}</TableCell>
+        <TableCell style={{ padding: "2px" }}>{generateDitributorDetail(order?.sellerCompanyId)?.sap_code}</TableCell>
+        <TableCell style={{ padding: "2px" }}>{generateDitributorDetail(order?.sellerCompanyId)?.Owner_Phone}</TableCell>
         {/* <TableCell>
           <RatingComp />
         </TableCell> */}
-        <TableCell>{!generateDitributorDetail(order?.sellerCompanyId)?.cxc_agent_name || generateDitributorDetail(order?.sellerCompanyId)?.cxc_agent_name === "undefined" ? "Nil" : generateDitributorDetail(order?.sellerCompanyId)?.cxc_agent_name}</TableCell>
-        <TableCell>{order?.CIC_Follow_Up}</TableCell>
+        <TableCell style={{ padding: "2px" }}>{!generateDitributorDetail(order?.sellerCompanyId)?.cxc_agent_name || generateDitributorDetail(order?.sellerCompanyId)?.cxc_agent_name === "undefined" ? "Nil" : generateDitributorDetail(order?.sellerCompanyId)?.cxc_agent_name}</TableCell>
+        <TableCell style={{ padding: "2px" }}>{order?.CIC_Follow_Up}</TableCell>
         {/* <TableCell>{!order?.specificRouteName || order?.specificRouteName === "undefined"  ?  "Nil"  : order?.specificRouteName}</TableCell> */}
-        <TableCell>
+        <TableCell style={{ padding: "2px" }}>
           {order?.CIC_Comment ?
             (<div style={{ display: "flex" }}>
               <Button style={{ color: 'green' }} onClick={handleOpenView}>View Comment</Button>
@@ -212,7 +291,7 @@ const Row = ({ order, generateDitributorDetail, getProductDetails }) => {
                 </Box>
               </Modal>
               <p style={{ paddingTop: "6px" }}>|</p>
-              <Button onClick={() => clickAction(order?.orderId, generateDitributorDetail(order?.sellerCompanyId)?.cxc_agent_name, cicStatus)}>Edit Comment</Button>
+              <Button onClick={() => clickAction(order?.orderId, generateDitributorDetail(order?.sellerCompanyId)?.cxc_agent_name)}>Edit Comment</Button>
               <Modal
                 open={openModal}
                 onClose={handleClose}
@@ -294,10 +373,10 @@ const Row = ({ order, generateDitributorDetail, getProductDetails }) => {
         </TableCell>
       </TableRow>
       <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 3 }}>
-              <Table size="small" sx={{ boxShadow: 'none' }} aria-label="purchases">
+              <Table size="small" sx={{ boxShadow: 'none', minWidth: 1000, }} aria-label="purchases">
                 <TableHead>
                   <TableRow>
                     <TableCell>Date</TableCell>
@@ -392,7 +471,7 @@ const useStyles = makeStyles({
 });
 
 const CollapsibleTable = () => {
-  let PageSize = 9;
+  let PageSize = 15;
   const dispatch = useDispatch();
   const [orderData, setOrderData] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -428,6 +507,7 @@ const CollapsibleTable = () => {
     return sorted;
   };
 
+
   useEffect(() => {
     dispatch(getAllOrders());
     dispatch(getAllDistributor('Nigeria'))
@@ -436,12 +516,14 @@ const CollapsibleTable = () => {
   }, []);
 
 
-  const sortOrder = () => {    
+  const sortOrder = () => {
+
     return (
       orders &&
       getOrderByRouteName().filter((data) => {
         return (
           data?.status !== null && String(data?.status).toLowerCase().includes(`${orderData.toLowerCase()}`) ||
+          data?.CIC_Follow_Up !== null && String(data?.CIC_Follow_Up).toLowerCase().includes(`${orderData.toLowerCase()}`) ||
           (data?.buyerDetails[0]?.buyerName !== null &&
             String(data?.buyerDetails[0]?.buyerName)
               .toLowerCase()
@@ -456,13 +538,13 @@ const CollapsibleTable = () => {
   };
 
   let data = [];
-  orders.map((order) => {
+  orders.sort((a, b) => new Date(b.datePlaced) - new Date(a.datePlaced)).map((order) => {
     data.push({
       "Date of Order": moment(order?.datePlaced).format('MMMM Do YYYY'),
       "Time of Order": moment(order?.datePlaced).format('h:m:s a'),
-      "Date And Time Accepted": moment(order?.orderStatus[0].dateAccepted).format('MMMM Do YYYY h:m:s a') !== null ? moment(order?.orderStatus[0].dateAccepted).format('MMMM Do YYYY h:m:s a') : "Not Available",
-      "Date And Time Delivered": moment(order?.orderStatus[0].dateDelivered).format('MMMM Do YYYY h:m:s a') !== null ? moment(order?.orderStatus[0].dateDelivered).format('MMMM Do YYYY h:m:s a') : "Not Available",
-      "Date And Time Completed": moment(order?.orderStatus[0].dateCompleted).format('MMMM Do YYYY h:m:s a') !== null ? moment(order?.orderStatus[0].dateCompleted).format('MMMM Do YYYY h:m:s a') : "Not Available",
+      "Date And Time Accepted": order?.orderStatus[0].dateAccepted !== null ? moment(order?.orderStatus[0].dateAccepted).format('MMMM Do YYYY h:m:s a') : "Not Available",
+      "Date And Time Delivered": order?.orderStatus[0].dateDelivered !== null ? moment(order?.orderStatus[0].dateDelivered).format('MMMM Do YYYY h:m:s a') : "Not Available",
+      "Date And Time Completed": order?.orderStatus[0].dateCompleted !== null ? moment(order?.orderStatus[0].dateCompleted).format('MMMM Do YYYY h:m:s a') : "Not Available",
       "Order Status": order?.status,
       "Buyer's Name": order?.buyerDetails[0]?.buyerName,
       "Buyer's Code": order?.buyerCompanyId,
@@ -492,30 +574,96 @@ const CollapsibleTable = () => {
     <>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
-          {/* <DateRange /> */}
+          <Box width={190}>
+            <CSVLink
+              data={data}
+              filename="order-report.csv"
+              style={{ textDecoration: "none" }}
+            >
+              <LoadingButton fullWidth size="large" variant="outlined">
+                Download-Report
+              </LoadingButton>
+            </CSVLink>
+          </Box>
         </Box>
-        <Box width={190}>
-          <CSVLink
-            data={data}
-            filename="order-report.csv"
-            style={{ textDecoration: "none" }}
+        <div style={{ display: "flex", width: "100%" }}>
+          <div
+            style={{
+              display: 'flex',
+              marginTop: '1%',
+              height: '70%',
+              width: '100%',
+              justifyContent: 'end'
+            }}
           >
-            <LoadingButton fullWidth size="large" variant="outlined">
-              Download-Report
-            </LoadingButton>
-          </CSVLink>
-
-        </Box>
+            <p style={{ marginTop: '5px' }}>Filter By CIC Status: </p>
+            <p
+              className=""
+              onClick={(e) => {
+                setOrderData('Open');
+              }}
+              style={{
+                background: "#008000",
+                color: "white",
+                padding: "5px 8px",
+                textAlign: "center",
+                borderRadius: "20px",
+                marginRight: "1%",
+                marginLeft: '1%',
+                width: "auto",
+                cursor: "pointer"
+              }}
+            >
+              Open
+          </p>
+            <p
+              className=""
+              onClick={(e) => {
+                setOrderData('Closed');
+              }}
+              style={{
+                background: "#800000",
+                color: "white",
+                padding: "5px 8px",
+                textAlign: "center",
+                borderRadius: "20px",
+                marginRight: "1%",
+                width: "auto",
+                cursor: "pointer"
+              }}
+            >
+              Closed
+          </p>
+            <p
+              className=""
+              onClick={(e) => {
+                setOrderData('Follow Up');
+              }}
+              style={{
+                background: "#FFA500",
+                color: "white",
+                padding: "5px 8px",
+                textAlign: "center",
+                borderRadius: "20px",
+                marginRight: "2%",
+                width: "auto",
+                cursor: "pointer"
+              }}
+            >
+              Follow Up
+          </p>
+          </div>
+        </div>
       </Box>
       <Box
         sx={{
           background: '#fff',
-          height: '110px',
+          height: '70px',
           display: 'flex',
           justifyContent: 'space-between',
           borderTopLeftRadius: '20px',
           borderTopRightRadius: '20px',
-          p: '30px 5px'
+          p: '10px 0px'
         }}
       >
         <SearchInput setOrderData={setOrderData} />
@@ -666,7 +814,7 @@ const CollapsibleTable = () => {
       >
         <Table
           sx={{
-            minWidth: 3000,
+            minWidth: 1800,
             boxShadow: '0px 7px 100px rgba(9, 11, 23, 0.18)'
           }}
           aria-label="collapsible table"
@@ -675,26 +823,25 @@ const CollapsibleTable = () => {
             <TableRow
               sx={{
                 backgroundColor: 'primary.dark',
-                height: '70px'
+                height: '40px'
               }}
             >
-              <TableCell />
-              <TableCell sx={{ color: '#ffff' }}>Date of Order</TableCell>
-              <TableCell sx={{ color: '#ffff' }}>Time of Order</TableCell>
-              <TableCell sx={{ color: '#ffff' }}>Acceptance Countdown</TableCell>
-              <TableCell sx={{ color: '#ffff' }}>Delivery Countdown</TableCell>
-              <TableCell sx={{ color: '#ffff' }}>Order Status</TableCell>
-              <TableCell sx={{ color: '#ffff' }}>Buyer's Name</TableCell>
-              <TableCell sx={{ color: '#ffff' }}>Buyer's Code</TableCell>
-              <TableCell sx={{ color: '#ffff' }}>Buyer's Phone</TableCell>
-              <TableCell sx={{ color: '#ffff' }}>Seller's Name</TableCell>
-              <TableCell sx={{ color: '#ffff' }}>Seller's Code</TableCell>
-              <TableCell sx={{ color: '#ffff' }}>Seller's Phone</TableCell>
+              <TableCell style={{padding: "1px 5px"}} />
+              <TableCell style={{padding: "1px 5px"}} sx={{ color: '#ffff' }}>Date of Order</TableCell>
+              <TableCell style={{padding: "1px 5px"}} sx={{ color: '#ffff' }}>Acceptance Countdown</TableCell>
+              <TableCell style={{padding: "1px 5px"}} sx={{ color: '#ffff' }}>Delivery Countdown</TableCell>
+              <TableCell style={{padding: "1px 5px"}} sx={{ color: '#ffff' }}>Order Status</TableCell>
+              <TableCell style={{padding: "1px 5px"}} sx={{ color: '#ffff' }}>Buyer's Name</TableCell>
+              <TableCell style={{padding: "1px 5px"}} sx={{ color: '#ffff' }}>Buyer's Code</TableCell>
+              <TableCell style={{padding: "1px 5px"}} sx={{ color: '#ffff' }}>Buyer's Phone</TableCell>
+              <TableCell style={{padding: "1px 5px"}} sx={{ color: '#ffff' }}>Seller's Name</TableCell>
+              <TableCell style={{padding: "1px 5px"}} sx={{ color: '#ffff' }}>Seller's Code</TableCell>
+              <TableCell style={{padding: "1px 5px"}} sx={{ color: '#ffff' }}>Seller's Phone</TableCell>
               {/* <TableCell sx={{ color: '#ffff' }}>Rating</TableCell> */}
-              <TableCell sx={{ color: '#ffff' }}>CIC Agent</TableCell>
-              <TableCell sx={{ color: '#ffff' }}>CIC Agent Status</TableCell>
+              <TableCell style={{padding: "1px 5px"}} sx={{ color: '#ffff' }}>CIC Agent</TableCell>
+              <TableCell style={{padding: "1px 5px"}} sx={{ color: '#ffff' }}>Agent Status</TableCell>
               {/* <TableCell sx={{ color: '#ffff' }}>Buyer's BDR</TableCell> */}
-              <TableCell sx={{ color: '#ffff' }}>Actions</TableCell>
+              <TableCell style={{padding: "1px 5px"}} sx={{ color: '#ffff' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -702,7 +849,7 @@ const CollapsibleTable = () => {
             {sortOrder().length === 0 ? (
               <tr className="" style={{ textAlign: "center", margin: "2% auto" }}>
                 <td colSpan={6}>
-                  <p style={{ textAlign: "center", paddingLeft: "13%", paddingTop: "5px", paddingBottom: "5px" }} className="m-auto">Fetching Orders...</p>
+                  <p style={{ textAlign: "center", paddingLeft: "80%", paddingTop: "5px", paddingBottom: "5px" }} className="m-auto">Fetching Orders...</p>
                 </td>
               </tr>
             ) : orders && currentTableData().map((row) => (

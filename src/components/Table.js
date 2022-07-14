@@ -247,7 +247,7 @@ const Row = ({ order, generateDitributorDetail, getProductDetails, generateCusto
       <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
         <TableCell style={{ padding: "2px" }}>
           <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
-            {open ? <Icon icon="mdi:menu-down" /> : <Icon icon="mdi:menu-up" />}
+            {open ? <Icon icon="mdi:menu-down" /> : <Icon icon="mdi:menu-right" />}
           </IconButton>
         </TableCell>
         <TableCell style={{ padding: "2px" }} component="th" scope="row">
@@ -455,7 +455,7 @@ const Row = ({ order, generateDitributorDetail, getProductDetails, generateCusto
                         </div>
                       </TableCell>
                       <TableCell>{order?.buyerDetails[0]?.buyerName}</TableCell>
-                      <TableCell>{order?.buyerCompanyId}</TableCell>
+                      <TableCell>{generateCustomerDetail(order?.buyerCompanyId)?.BB_Code}</TableCell>
                       {/* <TableCell align="left">{orderData?.quantity}</TableCell> */}
                       <TableCell align="left">
                         {orderData?.price * orderData?.quantity}

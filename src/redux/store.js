@@ -6,6 +6,8 @@ import userReducer from '../redux/user/user.reducer'
 import orderReducer from '../redux/order/order.reducer'
 import companyReducer from '../redux/company/company.reducer'
 import productReducer from '../redux/product/product.reducer'
+import customerReducer from '../redux/customer/customer.reducer'
+
 
 
 export default function configureStore(history, initialState) {
@@ -13,7 +15,8 @@ export default function configureStore(history, initialState) {
     user: userReducer,
     order: orderReducer, 
     distributor: companyReducer,
-    product: productReducer
+    product: productReducer,
+    customer:customerReducer
   };
 
   const middleware = [thunk, routerMiddleware(history)];

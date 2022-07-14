@@ -18,7 +18,7 @@ import * as serviceWorker from './serviceWorker';
 
 import reportWebVitals from './reportWebVitals';
 
-const baseUrl = 'http://localhost:3000';
+const baseUrl = 'https://localhost:3000';
 const history = createBrowserHistory({ basename: baseUrl });
 const initialState = window.initialReduxState;
 const store = configureStore(history, initialState);

@@ -4,17 +4,17 @@ dotenv.config();
 const { NODE_ENV } = process.env;
 
 export const distributorNet = axios.create({
-  baseURL: "https://dmsqa20.azure-api.net/company/",
+  baseURL: "https://dmsprd20.azure-api.net/company/",
 });
 
 export const productNet = axios.create({
-  baseURL: "https://dmsqa20.azure-api.net/product/api/v1/products/",
+  baseURL: "https://dmsprd20.azure-api.net/product/api/v1/products/",
 });
 
 
 
 export const orderNet = axios.create({
-  baseURL: "https://dmsqa20.azure-api.net/order/",
+  baseURL: "https://dmsprd20.azure-api.net/order/",
   // headers: { 'Authorization': `${process.env.REACT_APP_ORDER_TOKEN}` }
   headers: {
     Authorization:
@@ -23,17 +23,17 @@ export const orderNet = axios.create({
 });
 
 export const userNet = axios.create({
-  baseURL: "https://dmsqa20.azure-api.net/user/",
+  baseURL: "https://dmsprd20.azure-api.net/user/",
 });
 
 export const openOrdersNet = axios.create({
   baseURL:
-    "https://dmsqa20.azure-api.net/order/GetOrder/GetOpenOrderBySellerCompanyId/",
+    "https://dmsprd20.azure-api.net/order/GetOrder/GetOpenOrderBySellerCompanyId/",
 });
 
 export const completedOrdersNet = axios.create({
   baseURL:
-    "https://dmsqa20.azure-api.net/order/GetOrder/GetCompletedOrderBySellerCompanyId/",
+    "https://dmsprd20.azure-api.net/order/GetOrder/GetCompletedOrderBySellerCompanyId/",
 });
 
 

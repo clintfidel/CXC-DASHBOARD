@@ -125,19 +125,21 @@ const Row = ({ order, generateDitributorDetail, getProductDetails, generateCusto
 
   const setCountDown = () => {
 
-    // if (acceptanceCountdown === '' && deliveryCountdown === '') {
-      const datePlaced = new Date((new Date()))
-      const diff = Math.floor((new Date().getTime() - new Date(order.datePlaced).getTime()) / (60000));
+    if (acceptanceCountdown === '' && deliveryCountdown === '') {
+      // const datePlaced = new Date(new Date())
+      console.log(new Date().getTime(), new Date(order.datePlaced).getTime(), order.datePlaced, '+======>>>>>');
+      const diff = Math.floor((new Date().getTime() - new Date(order.datePlaced).getTime()) / 60000);
       const minAcceptanceTime = 10; // In minutes
       const minDeliveryTime = 1440;
+      console.log(diff, '=====>>>>>>>>');
       if (diff < minAcceptanceTime) {
         let countDown = minAcceptanceTime - diff;
         countDown = countDown < 10 ? `0${countDown}` : countDown;
         setAcceptanceCountdown(`${countDown}:00`);
       } 
-      // else if (diff < minAcceptanceTime && order?.staus === "Accepted") {
-      //   setAcceptanceCountdown('Order Accepted on Time');
-      // } 
+      else if (diff < minAcceptanceTime && order?.staus === "Accepted") {
+        setAcceptanceCountdown('Order Accepted on Time');
+      } 
       else {
         setAcceptanceCountdown('Time Exceeded');
       }
@@ -151,14 +153,14 @@ const Row = ({ order, generateDitributorDetail, getProductDetails, generateCusto
         const deliveryCountDown = `${hr}:${min}:00`
         setDeliveryCountdown(deliveryCountDown);
       } 
-      // else if (diff < minDeliveryTime && order?.staus === "Delivered") {
-      //   setAcceptanceCountdown('Order Delivered on Time');
-      // } 
+      else if (diff < minDeliveryTime && order?.staus === "Delivered") {
+        setAcceptanceCountdown('Order Delivered on Time');
+      } 
       else {
         setDeliveryCountdown('Time Exceeded')
       }
 
-    // }
+    }
 
     return null;
   }
@@ -203,6 +205,20 @@ const Row = ({ order, generateDitributorDetail, getProductDetails, generateCusto
     handleClose()
     window.location.reload();
 
+  }
+
+  const datePlacedValue = order?.datePlaced !==null && order?.datePlaced.split('T')[1].split('.')[0];
+
+  const tConvert = (time) => {
+    // Check correct time format and split into components
+    time = time&&time.toString ().match (/^([01]\d|2[0-3])(:)([0-5]\d)(:[0-5]\d)?$/) || [time];
+  
+    if (time.length > 1) { // If time format correct
+      time = time.slice (1);  // Remove full string match value
+      time[5] = +time[0] < 12 ? 'AM' : 'PM'; // Set AM/PM
+      time[0] = +time[0] % 12 || 12; // Adjust hours
+    }
+    return time.join (''); // return adjusted time or original string
   }
 
   const displayText = () => {
@@ -251,7 +267,7 @@ const Row = ({ order, generateDitributorDetail, getProductDetails, generateCusto
           </IconButton>
         </TableCell>
         <TableCell style={{ padding: "2px" }} component="th" scope="row">
-          {`${moment(order?.datePlaced).format('MMMM Do')}, ${moment(order?.datePlaced).format('hh:mm')}`}
+          {`${moment(order?.datePlaced).format('MMMM Do')}  ${" - "} ${tConvert(datePlacedValue)}`}
         </TableCell>
         <TableCell style={{ padding: "2px", paddingLeft: '15px' }}>
           {textDisplayAccept}
@@ -572,13 +588,13 @@ const CollapsibleTable = () => {
       "Date And Time Completed": order?.orderStatus[0].dateCompleted !== null ? moment(order?.orderStatus[0].dateCompleted).format('MMMM Do YYYY h:m:s a') : "Not Available",
       "Order Status": order?.status,
       "Buyer's Name": order?.buyerDetails[0]?.buyerName,
-      "Buyer's Code": generateCustomerDetail(order?.buyerCompanyId).BB_Code,
+      "Buyer's Code": generateCustomerDetail(order?.buyerCompanyId, '').BB_Code,
       "Buyer's Phone": order?.buyerDetails[0]?.buyerPhoneNumber,
       "BDR Email": generateCustomerDetail(order?.buyerCompanyId).sales_rep_email,
       "Total Amount": order?.totalPrice,
       "Quantity": order?.noOfProduct,
       "Seller's Name": generateDitributorDetail(order?.sellerCompanyId)?.company_name,
-      "Seller's Code": order?.sellerCompanyId,
+      "Seller's Code": generateDitributorDetail(order?.sellerCompanyId)?.sap_code,
       "Seller's Phone": generateDitributorDetail(order?.sellerCompanyId)?.Owner_Phone,
       "CIC Agent": generateDitributorDetail(order?.sellerCompanyId)?.cxc_agent_name,
       "CIC Agent Status": order?.CIC_Follow_Up,

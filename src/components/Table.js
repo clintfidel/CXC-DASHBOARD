@@ -77,16 +77,16 @@ const Row = ({ order, generateDitributorDetail, getProductDetails, generateCusto
       if (acceptanceCountdown && acceptanceCountdown !== 'Time Exceeded') {
         let newCountdown = acceptanceCountdown.split(':');
 
-        if (Number.parseInt(newCountdown[0]) == 0 && Number.parseInt(newCountdown[1]) == 0) {
+        if (parseInt(newCountdown[0], 10) == 0 && parseInt(newCountdown[1], 10) == 0) {
           setAcceptanceCountdown('Time Exceeded');
         }
 
-        if (Number.parseInt(newCountdown[1]) == 0) {
-          let min = Number.parseInt(newCountdown[0]) - 1;
+        if (parseInt(newCountdown[1], 10) == 0) {
+          let min = parseInt(newCountdown[0], 10) - 1;
           min = min < 10 ? `0${min}` : min;
           setAcceptanceCountdown(`${min}:59`);
         } else {
-          let sec = Number.parseInt(newCountdown[1]) - 1;
+          let sec = parseInt(newCountdown[1], 10) - 1;
           sec = sec < 10 ? `0${sec}` : sec;
           setAcceptanceCountdown(`${newCountdown[0]}:${sec}`);
         }
@@ -96,24 +96,24 @@ const Row = ({ order, generateDitributorDetail, getProductDetails, generateCusto
         let newDeliveryCountdown = deliveryCountdown.split(':');
 
 
-        if (Number.parseInt(newDeliveryCountdown[0]) == 0 && Number.parseInt(newDeliveryCountdown[1]) == 0 && Number.parseInt(newDeliveryCountdown[2]) == 0) {
+        if (parseInt(newDeliveryCountdown[0], 10) == 0 && parseInt(newDeliveryCountdown[1], 10) == 0 && parseInt(newDeliveryCountdown[2], 10) == 0) {
           setDeliveryCountdown('Time Exceeded');
         }
 
-        if (Number.parseInt(newDeliveryCountdown[2]) !== 0) {
-          let sec = Number.parseInt(newDeliveryCountdown[2]) - 1;
+        if (parseInt(newDeliveryCountdown[2], 10) !== 0) {
+          let sec = parseInt(newDeliveryCountdown[2]) - 1;
           sec = sec < 10 ? `0${sec}` : sec;
           setDeliveryCountdown(`${deliveryCountdown[0]}:${deliveryCountdown[1]}:${sec}`)
         }
 
-        if (Number.parseInt(newDeliveryCountdown[2]) === 0 && Number.parseInt(newDeliveryCountdown[1]) !== 0) {
-          let min = Number.parseInt(newDeliveryCountdown[1]) - 1;
+        if (parseInt(newDeliveryCountdown[2]) === 0 && parseInt(newDeliveryCountdown[1], 10) !== 0) {
+          let min = parseInt(newDeliveryCountdown[1]) - 1;
           min = min < 10 ? `0${min}` : min;
           setDeliveryCountdown(`${newDeliveryCountdown[0]}:${min}:59`);
         }
 
-        if (Number.parseInt(newDeliveryCountdown[2]) === 0 && Number.parseInt(newDeliveryCountdown[1]) === 0) {
-          let hr = Number.parseInt(newDeliveryCountdown[1]) - 1;
+        if (parseInt(newDeliveryCountdown[2], 10) === 0 && parseInt(newDeliveryCountdown[1], 10) === 0) {
+          let hr = parseInt(newDeliveryCountdown[1]) - 1;
           hr = hr < 10 ? `0${hr}` : hr;
           setDeliveryCountdown(`${hr}:${59}:59`);
         }
@@ -126,12 +126,12 @@ const Row = ({ order, generateDitributorDetail, getProductDetails, generateCusto
   const setCountDown = () => {
 
     if (acceptanceCountdown === '' && deliveryCountdown === '') {
-      // const datePlaced = new Date(new Date())
-      console.log(new Date().getTime(), new Date(order.datePlaced).getTime(), order.datePlaced, '+======>>>>>');
-      const diff = Math.floor((new Date().getTime() - new Date(order.datePlaced).getTime()) / 60000);
+      const datePlaced = Math.floor((new Date(order.datePlaced)).getTime() / 1000)
+      
+      console.log(new Date().getTime(), datePlaced, order.datePlaced, '+======>>>>>');
+      const diff = Math.floor((new Date().getTime() - datePlaced) / 60000);
       const minAcceptanceTime = 10; // In minutes
       const minDeliveryTime = 1440;
-      console.log(diff, '=====>>>>>>>>');
       if (diff < minAcceptanceTime) {
         let countDown = minAcceptanceTime - diff;
         countDown = countDown < 10 ? `0${countDown}` : countDown;
@@ -199,11 +199,10 @@ const Row = ({ order, generateDitributorDetail, getProductDetails, generateCusto
     }
     await dispatch(updatecomment(orderId, cicComment))
     handleSubmit(orderId, agent, cicStatus)
-    console.log(cicStatus, '-----cicStatus')
     dispatch(getAllOrders());
     setComment("");
     handleClose()
-    window.location.reload();
+    // window.location.reload();
 
   }
 
@@ -267,7 +266,10 @@ const Row = ({ order, generateDitributorDetail, getProductDetails, generateCusto
           </IconButton>
         </TableCell>
         <TableCell style={{ padding: "2px" }} component="th" scope="row">
-          {`${moment(order?.datePlaced).format('MMMM Do')}  ${" - "} ${tConvert(datePlacedValue)}`}
+          <p>
+          {`${moment(order?.datePlaced).format('MMMM Do')}`}
+          </p>
+          <p>{tConvert(datePlacedValue)}</p>
         </TableCell>
         <TableCell style={{ padding: "2px", paddingLeft: '15px' }}>
           {textDisplayAccept}
@@ -287,15 +289,15 @@ const Row = ({ order, generateDitributorDetail, getProductDetails, generateCusto
         <TableCell style={{ padding: "2px" }}>{!generateDitributorDetail(order?.sellerCompanyId)?.company_name ? generateCustomerDetail(order?.sellerCompanyId, 'Bulkbreaker')?.CUST_Name : generateDitributorDetail(order?.sellerCompanyId)?.company_name}</TableCell>
         <TableCell style={{ padding: "2px" }}>{generateDitributorDetail(order?.sellerCompanyId)?.sap_code}</TableCell>
         <TableCell style={{ padding: "2px" }}>{generateDitributorDetail(order?.sellerCompanyId)?.Owner_Phone}</TableCell>
-        <TableCell style={{ padding: "2px", textTransform: "lowercase" }}>{generateCustomerDetail(order?.buyerCompanyId).sales_rep_email}</TableCell>
+        <TableCell style={{ padding: "2px", textTransform: "lowercase" }}>{generateCustomerDetail(order?.buyerCompanyId)?.sales_rep_email}</TableCell>
 
         {/* <TableCell>
           <RatingComp />
         </TableCell> */}
-        <TableCell style={{ padding: "2px" }}>{!generateDitributorDetail(order?.sellerCompanyId)?.cxc_agent_name || generateDitributorDetail(order?.sellerCompanyId)?.cxc_agent_name === "undefined" ? "Nil" : generateDitributorDetail(order?.sellerCompanyId)?.cxc_agent_name}</TableCell>
+        <TableCell style={{ padding: "2px" }}>{!generateCustomerDetail(order?.buyerCompanyId)?.cxc_agent_name || generateCustomerDetail(order?.buyerCompanyId)?.cxc_agent_name === "undefined" ? "Nil" : generateCustomerDetail(order?.buyerCompanyId)?.cxc_agent_name}</TableCell>
         <TableCell style={{ padding: "2px" }}>{order?.CIC_Follow_Up}</TableCell>
         {/* <TableCell>{!order?.specificRouteName || order?.specificRouteName === "undefined"  ?  "Nil"  : order?.specificRouteName}</TableCell> */}
-        <TableCell style={{ padding: "2px" }}>
+        <TableCell style={{ padding: "2px", textAlign: "center" }}>
           {order?.CIC_Comment ?
             (<div style={{ display: "flex" }}>
               <Button style={{ color: 'green' }} onClick={handleOpenView}>View Comment</Button>
@@ -521,6 +523,7 @@ const CollapsibleTable = () => {
   const generateCustomerDetail = (buyerCompanyId, type) => {
     const x = allCustomers.find((buyer) => {
       if (buyer.SF_Code === buyerCompanyId && !type) {
+        console.log(buyer, '-------buyer')
         return buyer;
       }
       else if(buyer.SF_Code === buyerCompanyId && buyer?.CUST_Type === type) {
@@ -547,7 +550,6 @@ const CollapsibleTable = () => {
 
 
   useEffect(() => {
-    console.log(allCustomers,orders, '------->');
     
     dispatch(getAllOrders());
     dispatch(getAllDistributor('Nigeria'))
@@ -588,15 +590,15 @@ const CollapsibleTable = () => {
       "Date And Time Completed": order?.orderStatus[0].dateCompleted !== null ? moment(order?.orderStatus[0].dateCompleted).format('MMMM Do YYYY h:m:s a') : "Not Available",
       "Order Status": order?.status,
       "Buyer's Name": order?.buyerDetails[0]?.buyerName,
-      "Buyer's Code": generateCustomerDetail(order?.buyerCompanyId, '').BB_Code,
+      "Buyer's Code": generateCustomerDetail(order?.buyerCompanyId, '')?.BB_Code,
       "Buyer's Phone": order?.buyerDetails[0]?.buyerPhoneNumber,
-      "BDR Email": generateCustomerDetail(order?.buyerCompanyId).sales_rep_email,
+      "BDR Email": generateCustomerDetail(order?.buyerCompanyId)?.sales_rep_email,
       "Total Amount": order?.totalPrice,
       "Quantity": order?.noOfProduct,
       "Seller's Name": generateDitributorDetail(order?.sellerCompanyId)?.company_name,
       "Seller's Code": generateDitributorDetail(order?.sellerCompanyId)?.sap_code,
       "Seller's Phone": generateDitributorDetail(order?.sellerCompanyId)?.Owner_Phone,
-      "CIC Agent": generateDitributorDetail(order?.sellerCompanyId)?.cxc_agent_name,
+      "CIC Agent": generateCustomerDetail(order?.buyerCompanyId)?.cxc_agent_name,
       "CIC Agent Status": order?.CIC_Follow_Up,
       "CIC Comment": order?.CIC_Comment
     })

@@ -136,7 +136,7 @@ const Row = ({ order, generateDitributorDetail, getProductDetails, generateCusto
         countDown = countDown < 10 ? `0${countDown}` : countDown;
         setAcceptanceCountdown(`${countDown}:00`);
       } 
-      else if (diff < minAcceptanceTime && order?.staus === "Accepted") {
+      else if (diff < minAcceptanceTime && order?.status === "Accepted") {
         setAcceptanceCountdown('Order Accepted on Time');
       } 
       else {
@@ -152,7 +152,7 @@ const Row = ({ order, generateDitributorDetail, getProductDetails, generateCusto
         const deliveryCountDown = `${hr}:${min}:00`
         setDeliveryCountdown(deliveryCountDown);
       } 
-      else if (diff < minDeliveryTime && order?.staus === "Delivered") {
+      else if (diff < minDeliveryTime && order?.status === "Delivered") {
         setAcceptanceCountdown('Order Delivered on Time');
       } 
       else {
@@ -316,7 +316,7 @@ const Row = ({ order, generateDitributorDetail, getProductDetails, generateCusto
                 </Box>
               </Modal>
               <p style={{ paddingTop: "6px" }}>|</p>
-              <Button onClick={() => clickAction(order?.orderId, generateDitributorDetail(order?.sellerCompanyId)?.cxc_agent_name)}>Edit Comment</Button>
+              <Button onClick={() => clickAction(order?.orderId, generateCustomerDetail(order?.buyerCompanyId)?.cxc_agent_name)}>Edit Comment</Button>
               <Modal
                 open={openModal}
                 onClose={handleClose}
@@ -356,7 +356,7 @@ const Row = ({ order, generateDitributorDetail, getProductDetails, generateCusto
             </div>) :
             (<>
               <div>
-                <Button onClick={() => clickAction(order?.orderId, generateDitributorDetail(order?.sellerCompanyId)?.cxc_agent_name)}>Add Comment</Button>
+                <Button onClick={() => clickAction(order?.orderId, generateCustomerDetail(order?.buyerCompanyId)?.cxc_agent_name)}>Add Comment</Button>
                 <Modal
                   open={openModal}
                   onClose={handleClose}

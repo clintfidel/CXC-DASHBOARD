@@ -128,8 +128,7 @@ const Row = ({ order, generateDitributorDetail, getProductDetails, generateCusto
     if (acceptanceCountdown === '' && deliveryCountdown === '') {
       const datePlaced = Math.floor((new Date(order.datePlaced)).getTime() / 1000)
       
-      console.log(new Date().getTime(), datePlaced, order.datePlaced, '+======>>>>>');
-      const diff = Math.floor((new Date().getTime() - datePlaced) / 60000);
+      const diff = Math.floor((new Date().getTime() - (new Date(order.datePlaced.substring(0, order.datePlaced.length - 1))).getTime()) / 60000);
       const minAcceptanceTime = 10; // In minutes
       const minDeliveryTime = 1440;
       if (diff < minAcceptanceTime) {
@@ -523,7 +522,6 @@ const CollapsibleTable = () => {
   const generateCustomerDetail = (buyerCompanyId, type) => {
     const x = allCustomers.find((buyer) => {
       if (buyer.SF_Code === buyerCompanyId && !type) {
-        console.log(buyer, '-------buyer')
         return buyer;
       }
       else if(buyer.SF_Code === buyerCompanyId && buyer?.CUST_Type === type) {
@@ -549,8 +547,7 @@ const CollapsibleTable = () => {
   };
 
 
-  useEffect(() => {
-    
+  useEffect(() => {    
     dispatch(getAllOrders());
     dispatch(getAllDistributor('Nigeria'))
     dispatch(getAllProducts('Nigeria'))
